@@ -1,52 +1,36 @@
 <?php
-// If the form is submitted, process the new accomplishment
-
-// Reads all accomplishments from the JSON file.
-// Displays them in a table.
-// Provides links to add, edit, or delete each item.
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $text = trim($_POST['text'] ?? '');
-
-    if ($text !== '') {
-        $file = 'accomplishments.json';
-        $accomplishments = [];
-        if (file_exists($file)) {
-            $accomplishments = json_decode(file_get_contents($file), true);
-        }
-
-        // Generate a unique ID (timestamp + random number)
-        $id = time() . rand(1000, 9999);
-
-        // Add new accomplishment
-        $accomplishments[] = ['id' => $id, 'text' => $text];
-
-        // Save back to file
-        file_put_contents($file, json_encode($accomplishments, JSON_PRETTY_PRINT));
-
-        // Redirect to index
-        header('Location: index.php');
-        exit;
-    }
+// Load accomplishments from the JSON file
+$accomplishmentsFile = 'accomplishments.json';
+$accomplishments = [];
+if (file_exists($accomplishmentsFile)) {
+    $accomplishments = json_decode(file_get_contents($accomplishmentsFile), true);
 }
 ?>
 
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Add Accomplishment</title>
+    <title>Accomplishment Tracker</title>
 </head>
 <body>
-    <h1>Add New Accomplishment</h1>
-    <form method="post">
-        <label>
-            What did you accomplish?<br>
-            <input type="text" name="text" required>
-        </label>
-        <br><br>
-        <input type="submit" value="Add">
-    </form>
-    <br>
-    <a href="index.php">Back to List</a>
+    <h1>Today's Accomplishments</h1>
+    <a href="add.php">Add New Accomplishment</a>
+    <table border="1" cellpadding="5" cellspacing="0">
+        <tr>
+            <th>ID</th>
+            <th>Accomplishment</th>
+            <th>Actions</th>
+        </tr>
+        <?php foreach ($accomplishments as $item): ?>
+        <tr>
+            <td><?php echo htmlspecialchars($item['id']); ?></td>
+            <td><?php echo htmlspecialchars($item['text']); ?></td>
+            <td>
+                <a href="edit.php?id=<?php echo urlencode($item['id']); ?>">Edit</a> |
+                <a href="delete.php?id=<?php echo urlencode($item['id']); ?>" onclick="return confirm('Delete this accomplishment?');">Delete</a>
+            </td>
+        </tr>
+        <?php endforeach; ?>
+    </table>
 </body>
 </html>
